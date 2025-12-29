@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block header_title %}증명서 발급{% endblock %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+    <h2 class="text-xl font-bold text-gray-800">이력</h2>
+    <a href="{{ url_for('certificate.request_cert') }}"
+        class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 font-medium">
+        + 증명서 신청
+    </a>
+</div>
+
+<div class="bg-white shadow-sm rounded-lg overflow-hidden border border-gray-200">
+    <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+            <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">종류</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">제출처</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">용도</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">상태</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">다운로드</th>
+            </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+            {% for c in certs %}
+            <tr>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    {% if c.cert_type.value == 'EMPLOYMENT' %}재직증명서
+                    {% elif c.cert_type.value == 'CAREER' %}경력증명서
+                    {% elif c.cert_type.value == 'INCOME' %}소득증명서
+                    {% else %}{{ c.cert_type.value }}{% endif %}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ c.issue_to }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ c.reason }}</td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <span
+                        class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ 'bg-green-100 text-green-800' if c.status_local == 'APPROVED' else 'bg-yellow-100 text-yellow-800' }}">
+                        {{ c.status_local }}
+                    </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-3">
+                    {% if c.status_local == 'APPROVED' %}
+                    <a href="{{ url_for('certificate.preview', id=c.id) }}"
+                        class="text-indigo-600 hover:text-indigo-900">
+                        미리보기
+                    </a>
+                    <a href="{{ url_for('certificate.preview', id=c.id, auto_print=1) }}"
+                        class="text-green-600 hover:text-green-900">
+                        PDF 다운로드
+                    </a>
+                    {% else %}
+                    <span class="text-gray-400">-</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5" class="px-6 py-12 text-center text-gray-500">신청 내역이 없습니다.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

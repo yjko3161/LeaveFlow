@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+
+{% block header_title %}결재 상세{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- Left: Document Content -->
+    <div class="lg:col-span-2 space-y-6">
+        <div class="bg-white shadow-sm rounded-lg border border-gray-200 p-6">
+            <h3 class="text-lg font-bold text-gray-900 mb-4 border-b pb-2">문서 내용</h3>
+
+            {% if req.doc_type == 'LEAVE' and doc %}
+            <dl class="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+                <div class="sm:col-span-1">
+                    <dt class="text-sm font-medium text-gray-500">휴가 유형</dt>
+                    <dd class="mt-1 text-sm text-gray-900">{{ doc.leave_type.value }}</dd>
+                </div>
+                <div class="sm:col-span-1">
+                    <dt class="text-sm font-medium text-gray-500">기간</dt>
+                    <dd class="mt-1 text-sm text-gray-900">{{ doc.start_date }} ~ {{ doc.end_date }} ({{ doc.days }}일)
+                    </dd>
+                </div>
+                <div class="sm:col-span-2">
+                    <dt class="text-sm font-medium text-gray-500">사유</dt>
+                    <dd class="mt-1 text-sm text-gray-900">{{ doc.reason }}</dd>
+                </div>
+            </dl>
+            {% elif req.doc_type == 'EXPENSE' and doc %}
+            <div class="space-y-4">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500">제목</p>
+                        <p class="text-gray-900">{{ doc.title }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 text-right">총 금액</p>
+                        <p class="text-lg font-bold text-gray-900">{{ "{:,}".format(doc.total_amount) }}원</p>
+                    </div>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-500 mb-2">상세 내역</p>
+                    <ul class="border rounded-md divide-y">
+                        {% for item in doc.items %}
+                        <li class="p-3 text-sm flex justify-between">
+                            <span>{{ item.category.value }} - {{ item.merchant_name }}</span>
+                            <span class="font-medium">{{ "{:,}".format(item.amount) }}원</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="text-right">
+                    <a href="{{ url_for('expense.detail', id=doc.id) }}" target="_blank"
+                        class="text-indigo-600 hover:underline text-sm">상세 지출결의서 보기 (새창)</a>
+                </div>
+            </div>
+            {% elif req.doc_type == 'QUOTE' and doc %}
+            <div class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500">견적명</p>
+                        <p class="text-gray-900">{{ doc.title }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-500">수신처</p>
+                        <p class="text-gray-900">{{ doc.client_name }}</p>
+                    </div>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-500">총 견적금액</p>
+                    <p class="text-lg font-bold text-gray-900">{{ "{:,}".format(doc.total_amount) }}원</p>
+                </div>
+                <div class="text-right">
+                    <a href="{{ url_for('quote.detail', id=doc.id) }}" target="_blank"
+                        class="text-indigo-600 hover:underline text-sm">견적서 상세 보기 (새창)</a>
+                </div>
+            </div>
+            {% elif req.doc_type == 'CERTIFICATE' and doc %}
+            <dl class="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+                <div class="sm:col-span-1">
+                    <dt class="text-sm font-medium text-gray-500">증명서 종류</dt>
+                    <dd class="mt-1 text-sm text-gray-900">{{ doc.cert_type.value }}</dd>
+                </div>
+                <div class="sm:col-span-1">
+                    <dt class="text-sm font-medium text-gray-500">제출처</dt>
+                    <dd class="mt-1 text-sm text-gray-900">{{ doc.issue_to or '-' }}</dd>
+                </div>
+                <div class="sm:col-span-2">
+                    <dt class="text-sm font-medium text-gray-500">용도</dt>
+                    <dd class="mt-1 text-sm text-gray-900">{{ doc.reason }}</dd>
+                </div>
+            </dl>
+            <div class="text-right mt-4">
+                <a href="{{ url_for('certificate.preview', id=doc.id) }}" target="_blank"
+                    class="text-indigo-600 hover:underline text-sm">증명서 미리보기 (새창)</a>
+            </div>
+            {% else %}
+            <p class="text-gray-500 italic">문서 상세 정보를 불러올 수 없거나 지원하지 않는 문서 유형입니다.</p>
+            {% endif %}
+        </div>
+
+        <!-- Approval History -->
+        <div class="bg-white shadow-sm rounded-lg border border-gray-200 p-6">
+            <h3 class="text-lg font-bold text-gray-900 mb-4 border-b pb-2">결재 이력</h3>
+            <ul class="space-y-4">
+                <li class="flex space-x-3">
+                    <div class="flex-shrink-0">
+                        <div
+                            class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-600">
+                            REQ</div>
+                    </div>
+                    <div>
+                        <div class="text-sm font-medium text-gray-900">{{ req.requester.name }}</div>
+                        <div class="text-xs text-gray-500">기안 ({{ req.created_at.strftime('%Y-%m-%d %H:%M') }})</div>
+                    </div>
+                </li>
+                {% for action in req.actions %}
+                <li class="flex space-x-3">
+                    <div class="flex-shrink-0">
+                        <div
+                            class="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-xs font-bold text-indigo-600">
+                            {{ action.action[0] }}</div>
+                    </div>
+                    <div>
+                        <div class="text-sm font-medium text-gray-900">{{ action.actor.name }}</div>
+                        <div class="text-xs text-gray-500">{{ action.action }} ({{ action.created_at.strftime('%Y-%m-%d
+                            %H:%M') }})</div>
+                        {% if action.comment %}
+                        <div class="mt-1 text-sm text-gray-600 bg-gray-50 p-2 rounded">{{ action.comment }}</div>
+                        {% endif %}
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <!-- Right: Action Panel -->
+    <div class="lg:col-span-1">
+        <div class="bg-white shadow-sm rounded-lg border border-gray-200 p-6 sticky top-6">
+            <h3 class="text-lg font-bold text-gray-900 mb-4">결재 처리</h3>
+
+            <div class="mb-6">
+                <div class="text-sm text-gray-500 mb-1">현재 상태</div>
+                <div
+                    class="text-xl font-bold {{ 'text-green-600' if req.status == 'APPROVED' else 'text-yellow-600' }}">
+                    {{ req.status.value }}
+                </div>
+            </div>
+
+            {% if req.status in ['SUBMITTED', 'IN_PROGRESS'] %}
+            <!-- Check if current user is the current approver -->
+            <!-- Logic simplified for MVP: Inbox shows only if pending for user -->
+            <form action="{{ url_for('approval.action', request_id=req.id) }}" method="POST" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">코멘트</label>
+                    <textarea name="comment" rows="3"
+                        class="w-full border-gray-300 rounded-md shadow-sm border p-2 text-sm"></textarea>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <button type="submit" name="action" value="APPROVE"
+                        class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700">
+                        승인
+                    </button>
+                    <button type="submit" name="action" value="REJECT"
+                        class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700">
+                        반려
+                    </button>
+                </div>
+            </form>
+            {% elif req.status == 'APPROVED' %}
+            <div class="mt-4">
+                <a href="{{ url_for('export.download', request_id=req.id) }}"
+                    class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
+                    문서 다운로드 (Excel)
+                </a>
+            </div>
+            {% else %}
+            <div class="p-4 bg-gray-50 rounded text-sm text-gray-500 text-center">
+                처리 가능한 상태가 아닙니다.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

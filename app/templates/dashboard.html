@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block header_title %}대시보드{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <!-- Stat Card: Leave -->
+    <div class="bg-white overflow-hidden shadow-sm rounded-xl border border-gray-100 p-6">
+        <div class="text-sm font-medium text-gray-500 truncate">
+            {% if current_user.role == 'ADMIN' %}전사 잔여 연차{% else %}내 잔여 연차{% endif %}
+        </div>
+        <div class="mt-1 text-3xl font-bold text-gray-900">
+            {{ leave_remaining | round(1) }} <span class="text-sm font-normal text-gray-400">/ {{ leave_total }}</span>
+        </div>
+    </div>
+
+    <!-- Stat Card: Pending Approvals -->
+    <div class="bg-white overflow-hidden shadow-sm rounded-xl border border-gray-100 p-6">
+        <div class="text-sm font-medium text-gray-500 truncate">
+            {% if current_user.role == 'ADMIN' %}전체 진행중 결재{% else %}진행중인 내 결재{% endif %}
+        </div>
+        <div class="mt-1 text-3xl font-bold text-gray-900">
+            {{ pending_approvals_count }} <span class="text-sm font-normal text-gray-400">건</span>
+        </div>
+    </div>
+
+    <!-- Stat Card: Expenses -->
+    <div class="bg-white overflow-hidden shadow-sm rounded-xl border border-gray-100 p-6">
+        <div class="text-sm font-medium text-gray-500 truncate">
+            {{ current_month }}월 {% if current_user.role == 'ADMIN' %}전체 지출{% else %}내 지출{% endif %}
+        </div>
+        <div class="mt-1 text-3xl font-bold text-gray-900">₩{{ "{:,}".format(monthly_expenses | int) }}</div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <!-- Admin Only: Employee Leave Status -->
+        {% if current_user.role == 'ADMIN' %}
+        <div class="bg-white shadow-sm rounded-xl border border-gray-100 lg:col-span-2">
+            <div class="px-6 py-4 border-b border-gray-100">
+                <h3 class="text-lg font-medium text-gray-900">직원 연차 현황</h3>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                이름</th>
+                            <th
+                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                부여</th>
+                            <th
+                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                사용</th>
+                            <th
+                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                잔여</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for name, granted, used, remaining in all_users_leave %}
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ name }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">{{ granted or 0 }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">{{ used or 0 }}
+                            </td>
+                            <td
+                                class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center font-bold {{ 'text-red-500' if remaining and remaining < 0 else 'text-blue-600' }}">
+                                {{ remaining or 0 }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500">데이터가 없습니다.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="space-y-6">
+            <!-- New: Approved Leaves This Month -->
+            <div class="bg-white shadow-sm rounded-xl border border-gray-100">
+                <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+                    <h3 class="text-lg font-medium text-gray-900">{{ current_month }}월 휴가 승인 내역</h3>
+                    <span class="text-xs text-gray-400">이번 달 시작 휴가</span>
+                </div>
+                <ul class="divide-y divide-gray-100">
+                    {% for leave in approved_leaves_this_month %}
+                    <li class="px-6 py-4 hover:bg-gray-50 flex justify-between items-center">
+                        <div>
+                            <div class="text-sm font-medium text-gray-900">{{ leave.user.name }}</div>
+                            <div class="text-xs text-gray-500">{{ leave.leave_type.value }}</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-sm font-bold text-gray-700">
+                                {{ leave.start_date.strftime('%m.%d') }} ~ {{ leave.end_date.strftime('%m.%d') }}
+                            </div>
+                            <div class="text-xs text-gray-400">{{ leave.days }}일간</div>
+                        </div>
+                    </li>
+                    {% else %}
+                    <li class="px-6 py-4 text-center text-gray-500 text-sm">이번 달 승인된 휴가가 없습니다.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <!-- Recent Activity -->
+            <div
+                class="bg-white shadow-sm rounded-xl border border-gray-100 {{ 'lg:col-span-2' if current_user.role != 'ADMIN' else '' }}">
+                <div class="px-6 py-4 border-b border-gray-100">
+                    <h3 class="text-lg font-medium text-gray-900">최근 결재 활동</h3>
+                </div>
+                <ul class="divide-y divide-gray-100">
+                    {% for item in recent_activities %}
+                    <li class="px-6 py-4 hover:bg-gray-50">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-900">
+                                    {% if item.doc_type == 'LEAVE' %}
+                                    연차 신청
+                                    {% elif item.doc_type == 'EXPENSE' %}
+                                    지출 결의
+                                    {% elif item.doc_type == 'CERTIFICATE' %}
+                                    증명서 발급
+                                    {% endif %}
+                                    <a href="{{ url_for('approval.detail', request_id=item.id) }}"
+                                        class="text-indigo-600 hover:underline">#{{ item.id }}</a>
+                                </p>
+                                <p class="text-xs text-gray-500">{{ item.created_at.strftime('%Y-%m-%d %H:%M') }} | {{
+                                    item.requester.name }}</p>
+                            </div>
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full 
+                        {% if item.status.value == 'APPROVED' %}bg-green-100 text-green-800
+                        {% elif item.status.value == 'REJECTED' %}bg-red-100 text-red-800
+                        {% elif item.status.value == 'DRAFT' %}bg-gray-100 text-gray-800
+                        {% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                                {{ item.status.value }}
+                            </span>
+                        </div>
+                    </li>
+                    {% else %}
+                    <li class="px-6 py-4 text-center text-gray-500 text-sm">최근 내역이 없습니다.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        {% endblock %}

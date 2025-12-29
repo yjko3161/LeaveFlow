@@ -1,0 +1,269 @@
+{% extends "base.html" %}
+
+{% block header_title %}지출결의서 상세{% endblock %}
+
+{% block content %}
+<div class="max-w-[210mm] mx-auto p-4 print:p-0 print:max-w-none print:w-full">
+    <!-- Actions -->
+    <div class="mb-6 flex justify-between items-center print:hidden">
+        <a href="{{ url_for('expense.index') }}" class="text-gray-500 hover:text-gray-700">
+            &larr; 목록으로
+        </a>
+        <button onclick="window.print()" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">
+            인쇄
+        </button>
+    </div>
+
+    <!-- Paper Container -->
+    <div
+        class="bg-white shadow-lg p-[10mm] print:shadow-none print:pt-[15mm] print:px-[15mm] print:pb-[10mm] page-break-after-always">
+
+        <!-- Header -->
+        <h1 class="text-4xl font-bold text-center tracking-[1em] mb-12 border-b-2 border-black pb-4">지출정산서</h1>
+
+        <!-- Top Info Row -->
+        <div class="flex justify-between items-stretch mb-8 gap-4">
+            <!-- Left Info Table -->
+            <div class="flex-1">
+                <table class="w-full border-collapse border border-black text-center text-sm h-full table-fixed">
+                    <colgroup>
+                        <col style="width: 20%;">
+                        <col style="width: 30%;">
+                        <col style="width: 20%;">
+                        <col style="width: 30%;">
+                    </colgroup>
+                    <tr class="h-10">
+                        <th class="border border-black bg-gray-50 font-bold">정산일</th>
+                        <td class="border border-black px-2">{{ report.created_at.strftime('%Y년 %m월 %d일') }}</td>
+                        <th class="border border-black bg-gray-50 font-bold">담당</th>
+                        <td class="border border-black px-2">{{ report.user.name }}</td>
+                    </tr>
+                    <tr class="h-10">
+                        <th class="border border-black bg-gray-50 font-bold">금액</th>
+                        <td class="border border-black px-2 font-bold" colspan="2">
+                            {{ report.total_amount | num_to_kor }}원 정
+                        </td>
+                        <td class="border border-black px-2 font-bold font-mono text-center">
+                            ₩ {{ "{:,}".format(report.total_amount) }}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- Right Approval Box -->
+            <div class="w-64">
+                <table class="w-full border-collapse border border-black text-center h-full table-fixed">
+                    <colgroup>
+                        <col style="width: 35px;">
+                        <col style="width: 33.3%;">
+                        <col style="width: 33.3%;">
+                        <col style="width: 33.3%;">
+                    </colgroup>
+                    <tr class="h-8">
+                        <th rowspan="2" class="border border-black bg-gray-50 font-bold text-[10px]"
+                            style="writing-mode: vertical-rl; text-orientation: upright; padding: 4px 0;">결재</th>
+                        <th class="border border-black bg-gray-50 py-1 text-[10px] font-bold">담당</th>
+                        <th class="border border-black bg-gray-50 py-1 text-[10px] font-bold">부서장</th>
+                        <th class="border border-black bg-gray-50 py-1 text-[10px] font-bold">대표</th>
+                    </tr>
+                    <tr class="h-20">
+                        <td class="border border-black align-middle relative p-1">
+                            {% if report.user.signature and report.user.signature.image_path %}
+                            <img src="{{ url_for('main.uploaded_file', filename=report.user.signature.image_path) }}"
+                                class="max-h-16 max-w-full mx-auto object-contain">
+                            {% else %}
+                            <span class="text-[10px] font-serif">{{ report.user.name }}</span>
+                            {% endif %}
+                        </td>
+                        <!-- Approval Status Logic -->
+                        {% set manager_action = None %}
+                        {% set admin_action = None %}
+                        {% if approval %}
+                        {% for action in approval.actions %}
+                        {% if action.actor.role == 'MANAGER' and action.action == 'APPROVE' %}
+                        {% set manager_action = action %}
+                        {% elif action.actor.role == 'ADMIN' and action.action == 'APPROVE' %}
+                        {% set admin_action = action %}
+                        {% endif %}
+                        {% endfor %}
+                        {% endif %}
+
+                        <td class="border border-black align-middle relative p-1">
+                            {% if manager_action and manager_action.actor.signature and
+                            manager_action.actor.signature.image_path %}
+                            <img src="{{ url_for('main.uploaded_file', filename=manager_action.actor.signature.image_path) }}"
+                                class="max-h-16 max-w-full mx-auto object-contain">
+                            {% elif manager_action %}
+                            <span
+                                class="text-red-500 font-bold border border-red-500 rounded-full w-8 h-8 flex items-center justify-center mx-auto text-[10px] transform -rotate-12">승인</span>
+                            {% endif %}
+                        </td>
+                        <td class="border border-black align-middle relative p-1">
+                            {% if admin_action and admin_action.actor.signature and
+                            admin_action.actor.signature.image_path %}
+                            <img src="{{ url_for('main.uploaded_file', filename=admin_action.actor.signature.image_path) }}"
+                                class="max-h-16 max-w-full mx-auto object-contain">
+                            {% elif admin_action %}
+                            <span
+                                class="text-red-500 font-bold border border-red-500 rounded-full w-8 h-8 flex items-center justify-center mx-auto text-[10px] transform -rotate-12">승인</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="text-center my-12 text-base font-medium">
+            아래와 같이 경비 지출정산을 요청합니다.
+        </div>
+
+        <!-- Detail Table Section Title -->
+        <div class="text-center font-bold mb-2 tracking-widest">[ 정 산 내 역 ]</div>
+
+        <!-- Detail Table -->
+        <table class="w-full border-collapse border border-black text-center mb-6 text-[11px] table-fixed">
+            <colgroup>
+                <col style="width: 8%;">
+                <col style="width: 37%;">
+                <col style="width: 15%;">
+                <col style="width: 20%;">
+                <col style="width: 20%;">
+            </colgroup>
+            <thead class="bg-gray-50">
+                <tr class="h-8">
+                    <th class="border border-black py-1 font-bold">No.</th>
+                    <th class="border border-black py-1 font-bold">적 요</th>
+                    <th class="border border-black py-1 font-bold">거래처</th>
+                    <th class="border border-black py-1 font-bold">금액(현금/카드)</th>
+                    <th class="border border-black py-1 font-bold">비 고</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in report.items %}
+                <tr class="h-8">
+                    <td class="border border-black py-1">{{ loop.index }}</td>
+                    <td class="border border-black py-1 text-left px-2 truncate">
+                        {{ item.description or item.category.name }}
+                    </td>
+                    <td class="border border-black py-1 truncate">{{ item.merchant }}</td>
+                    <td class="border border-black py-1 text-right px-2 font-mono font-bold">{{
+                        "{:,}".format(item.amount) }}</td>
+                    <td class="border border-black py-1 text-[10px] text-gray-500">
+                        법인카드
+                        {% if report.user.card_number %}
+                        {{ report.user.card_number }}
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+
+                <!-- Empty rows to maintain height (A4 optimization - reduced to 12 to prevent overflow) -->
+                {% for i in range(12 - report.items|length) %}
+                <tr class="h-8">
+                    <td class="border border-black py-1"></td>
+                    <td class="border border-black py-1"></td>
+                    <td class="border border-black py-1"></td>
+                    <td class="border border-black py-1"></td>
+                    <td class="border border-black py-1"></td>
+                </tr>
+                {% endfor %}
+
+                <tr class="font-bold bg-gray-50 h-10">
+                    <td class="border border-black text-center tracking-[1em] pl-[1em]" colspan="3">지출합계</td>
+                    <td class="border border-black text-right px-2 text-xs font-mono font-bold">{{
+                        "{:,}".format(report.total_amount) }}</td>
+                    <td class="border border-black"></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- 비고 -->
+        <div class="border border-black p-3 min-h-[60px] mb-8 text-[11px] relative">
+            <div class="absolute -top-2.5 left-3 bg-white px-2 font-bold text-[10px]">비 고 :</div>
+            {{ report.title }}
+        </div>
+
+        <!-- Footer Logo -->
+        <div class="flex justify-center items-center mt-6 mb-4 opacity-80">
+            <h2 class="text-xl font-serif font-bold tracking-widest text-gray-900">{{ config_company_name or '휴넷가이아㈜' }}
+            </h2>
+        </div>
+
+        <!-- Page Break for Receipts -->
+        <div
+            class="mt-12 border-t-2 border-dashed border-gray-300 pt-8 print:border-none print:mt-0 page-break-before-always">
+            <h2 class="text-xl font-bold mb-6 text-center border-b-2 border-black pb-2 inline-block px-8">증빙 영수증 첨부</h2>
+
+            <div class="space-y-8">
+                {% for item in report.items %}
+                {% if item.file %}
+                <div class="border border-gray-300 p-4 break-inside-avoid rounded-lg bg-white shadow-sm flex flex-col">
+                    <div class="flex justify-between items-center mb-3 pb-2 border-b border-gray-100 flex-none">
+                        <span class="text-xs font-bold text-gray-700">{{ loop.index }}. {{ item.merchant }}</span>
+                        <span class="text-xs font-mono font-bold text-indigo-600">{{ "{:,}".format(item.amount)
+                            }}원</span>
+                    </div>
+
+                    <div class="flex justify-center bg-gray-50 rounded-md overflow-hidden min-h-[40mm] flex-1">
+                        {% if item.file.filename.lower().endswith('.pdf') %}
+                        <div class="w-full h-[160mm] print:h-[160mm] aspect-[1/1.414]">
+                            <iframe
+                                src="{{ url_for('main.uploaded_file', filename=item.file.filename) }}#toolbar=0&navpanes=0&scrollbar=0&view=Fit"
+                                class="w-full h-full border-none shadow-inner overflow-hidden"
+                                style="overflow: hidden;"></iframe>
+                            <div class="print:hidden text-center mt-2">
+                                <a href="{{ url_for('main.uploaded_file', filename=item.file.filename) }}"
+                                    target="_blank" class="text-[10px] text-indigo-600 hover:underline">PDF 원본 보기</a>
+                            </div>
+                        </div>
+                        {% else %}
+                        <img src="{{ url_for('main.uploaded_file', filename=item.file.filename) }}" alt="Receipt"
+                            class="max-w-full max-h-[120mm] object-contain shadow-sm">
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    @media print {
+        @page {
+            size: A4;
+            margin: 15mm 15mm 10mm;
+            /* Top, Left/Right, Bottom */
+        }
+
+        body {
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        .page-break-before-always {
+            page-break-before: always;
+        }
+
+        .page-break-after-always {
+            page-break-after: always;
+        }
+
+        .break-inside-avoid {
+            break-inside: avoid;
+        }
+
+        .writing-vertical {
+            writing-mode: vertical-rl;
+            text-orientation: upright;
+        }
+    }
+
+    .writing-vertical {
+        writing-mode: vertical-rl;
+        text-orientation: upright;
+    }
+</style>
+{% endblock %}

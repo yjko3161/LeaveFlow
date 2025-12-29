@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block header_title %}결재함{% endblock %}
+
+{% block content %}
+<div class="bg-white shadow-sm rounded-lg overflow-hidden border border-gray-200">
+    <div class="px-6 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
+        <h3 class="text-lg font-medium text-gray-900">결재 대기 문서</h3>
+        <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded">{{ requests|length
+            }}건</span>
+    </div>
+    <ul class="divide-y divide-gray-200">
+        {% for req in requests %}
+        <li class="hover:bg-gray-50">
+            <a href="{{ url_for('approval.detail', request_id=req.id) }}" class="block px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-semibold text-indigo-600 truncate">
+                            [{{ req.doc_type }}] #{{ req.doc_id }}
+                            {% if req.summary_text %}
+                            <span class="ml-2 text-gray-700 font-normal"> - {{ req.summary_text }}</span>
+                            {% endif %}
+                        </p>
+                        <p class="mt-1 text-sm text-gray-900">
+                            요청자: {{ req.requester.name }}
+                        </p>
+                        <p class="mt-1 text-xs text-gray-500">
+                            {{ req.created_at.strftime('%Y-%m-%d %H:%M') }}
+                        </p>
+                    </div>
+                    <div class="flex items-center">
+                        <span
+                            class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                            승인 대기
+                        </span>
+                        <svg class="ml-5 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                            fill="currentColor">
+                            <path fill-rule="evenodd"
+                                d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                                clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                </div>
+            </a>
+        </li>
+        {% else %}
+        <li class="px-6 py-12 text-center text-gray-500">
+            처리할 결재 문서가 없습니다.
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}

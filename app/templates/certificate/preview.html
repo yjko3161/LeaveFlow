@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+
+{% block header_title %}증명서 미리보기{% endblock %}
+
+{% block content %}
+<div class="max-w-[210mm] mx-auto p-4 print:p-0 print:max-w-none print:w-full">
+    <div class="mb-6 flex justify-between items-center print:hidden">
+        <a href="{{ url_for('certificate.list') }}" class="text-gray-500 hover:text-gray-700">
+            &larr; 목록으로
+        </a>
+        <button onclick="window.print()" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">
+            인쇄 / PDF 저장
+        </button>
+    </div>
+
+    <!-- Paper Container -->
+    <div class="bg-white shadow-lg p-[15mm] min-h-[297mm] print:min-h-0 relative print:shadow-none print:p-0">
+
+        <!-- Document Border -->
+        <div class="border-2 border-gray-300 h-full p-[10mm] flex flex-col justify-between" style="min-height: 230mm;">
+
+            <div class="text-center mt-4">
+                <p class="text-xs font-serif tracking-widest text-gray-500 mb-1 uppercase">Employment Certificate</p>
+                <p class="text-[10px] text-gray-400 mb-4">Certificate ID : {{ cert.created_at.strftime('%Y%m%d') }}-{{
+                    cert.id }}</p>
+                <h1 class="text-3xl font-serif font-bold tracking-[0.5em] mb-4">
+                    {% if cert.cert_type.value == 'EMPLOYMENT' %}재직증명서
+                    {% elif cert.cert_type.value == 'CAREER' %}경력증명서
+                    {% elif cert.cert_type.value == 'INCOME' %}소득증명서
+                    {% else %}증명서{% endif %}
+                </h1>
+                <div class="w-12 h-0.5 bg-black mx-auto mb-8"></div>
+            </div>
+
+            <!-- Body Info -->
+            <div class="flex-1 px-8">
+                <!-- Personal Info -->
+                <div class="mb-12">
+                    <p class="text-sm font-bold mb-4 text-gray-800">[ 인 적 사 항 ]</p>
+                    <table class="w-full text-sm">
+                        <tr class="border-t border-gray-200">
+                            <th
+                                class="text-left w-32 py-2 font-bold text-gray-600 bg-gray-50 px-4 border-r border-gray-100">
+                                성 명</th>
+                            <td class="text-left py-2 font-serif px-4 border-b border-gray-100">{{ cert.user.name }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th class="text-left py-2 font-bold text-gray-600 bg-gray-50 px-4 border-r border-gray-100">
+                                주민등록번호</th>
+                            <td class="text-left py-2 font-serif px-4 border-b border-gray-100">******-*******</td>
+                        </tr>
+                        <tr>
+                            <th class="text-left py-2 font-bold text-gray-600 bg-gray-50 px-4 border-r border-gray-100">
+                                주 소</th>
+                            <td class="text-left py-2 font-serif px-4 border-b border-gray-100">{{ cert.user.address or
+                                '주소 정보 없음' }}</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <hr class="border-gray-200 mb-8">
+
+                <div class="mb-12">
+                    <p class="text-sm font-bold mb-4 text-gray-800">[ 재 직 사 항 ]</p>
+                    <table class="w-full text-sm">
+                        <tr class="border-t border-gray-200">
+                            <th
+                                class="text-left w-32 py-2 font-bold text-gray-600 bg-gray-50 px-4 border-r border-gray-100">
+                                직장명</th>
+                            <td class="text-left py-2 font-serif px-4 border-b border-gray-100">{{ company.company_name
+                                }}</td>
+                        </tr>
+                        <tr>
+                            <th class="text-left py-2 font-bold text-gray-600 bg-gray-50 px-4 border-r border-gray-100">
+                                소재지</th>
+                            <td class="text-left py-2 font-serif px-4 border-b border-gray-100">{{ company.address }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th class="text-left py-2 font-bold text-gray-600 bg-gray-50 px-4 border-r border-gray-100">
+                                직위</th>
+                            <td class="text-left py-2 font-serif px-4 border-b border-gray-100">
+                                {% if cert.user.role == 'ADMIN' %}대표
+                                {% elif cert.user.role == 'MANAGER' %}부서장
+                                {% else %}사원{% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th class="text-left py-2 font-bold text-gray-600 bg-gray-50 px-4 border-r border-gray-100">
+                                재직기간</th>
+                            <td class="text-left py-2 font-serif px-4 border-b border-gray-100">
+                                {{ cert.user.join_date.strftime('%Y.%m.%d') if cert.user.join_date else '입사일 미상' }} ~ 현재
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="text-center mb-12">
+                    <p class="mb-2 text-sm text-gray-600">용도 : {{ cert.reason }}</p>
+                    <p class="text-lg font-serif">상기인은 위와 같이 재직하고 있음을 증명합니다.</p>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="text-center relative pb-12">
+                <p class="text-sm text-gray-500 mb-4">Confirmed and Signed by</p>
+                <div class="relative inline-block">
+                    <p class="text-sm font-bold text-gray-700 mb-2">{{ company.company_name }}</p>
+                    <h2 class="text-2xl font-bold tracking-widest relative z-10">대표이사 {{ company.owner_name }}</h2>
+                    <!-- Stamp Overlay -->
+                    <div class="absolute -top-4 -right-8 w-20 h-20 opacity-80 z-0">
+                        {% if company.stamp_path %}
+                        <img src="{{ url_for('main.uploaded_file', filename=company.stamp_path) }}"
+                            class="w-full h-full object-contain" />
+                        {% else %}
+                        <div class="border-4 border-red-600 rounded-full w-full h-full flex items-center justify-center text-red-600 font-bold text-xs p-1 text-center"
+                            style="transform: rotate(-15deg);">
+                            {{ company.company_name }}<br>직인
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <!-- Date -->
+                <p class="mt-8 text-sm font-serif">{{ today.strftime('%Y. %m. %d.') }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    @media print {
+        @page {
+            size: A4;
+            margin: 0;
+        }
+
+        body {
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+            background-color: white;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('auto_print') === '1') {
+            setTimeout(() => {
+                window.print();
+            }, 300);
+        }
+    });
+</script>
+{% endblock %}

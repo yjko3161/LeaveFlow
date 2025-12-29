@@ -1,0 +1,9 @@
+flask
+sqlalchemy
+flask-sqlalchemy
+pymysql
+python-dotenv
+jinja2
+openpyxl
+cryptography
+email-validator

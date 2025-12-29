@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block header_title %}연차 관리 (직원){% endblock %}
+
+{% block content %}
+<div class="bg-white shadow-sm rounded-lg overflow-hidden border border-gray-200">
+    <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+            <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">이름</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">부서</th>
+                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">총 연차 (일)
+                </th>
+                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">잔여 연차 (일)
+                </th>
+                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">관리</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+            {% for u in users %}
+            {% set bal = balances.get(u.id) %}
+            <tr class="hover:bg-gray-50">
+                <td class="px-6 py-4 text-sm font-medium text-gray-900">{{ u.name }}</td>
+                <td class="px-6 py-4 text-sm text-gray-500">{{ u.team.name if u.team else '-' }}</td>
+                <form action="{{ url_for('leave.update_balance', user_id=u.id) }}" method="POST">
+                    <td class="px-6 py-4 text-center">
+                        <input type="number" name="granted" value="{{ bal.granted if bal else 0 }}"
+                            class="w-20 border border-gray-300 rounded text-center text-sm py-1">
+                    </td>
+                    <td class="px-6 py-4 text-center">
+                        <input type="number" name="remaining" value="{{ bal.remaining if bal else 0 }}"
+                            class="w-20 border border-gray-300 rounded text-center text-sm py-1 {{ 'text-red-600 font-bold' if bal and (bal.remaining or 0) < 0 }}">
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        <button type="submit"
+                            class="text-indigo-600 hover:text-indigo-900 text-sm font-medium">수정</button>
+                    </td>
+                </form>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5" class="px-6 py-12 text-center text-gray-500">관리할 직원이 없습니다.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

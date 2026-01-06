@@ -198,3 +198,9 @@ def copy(id):
     db.session.commit()
     flash('견적서가 복사되었습니다. 내용을 수정하세요.', 'success')
     return redirect(url_for('quote.edit', id=new_quote.id))
+
+@bp.route('/<int:id>/transaction_print')
+@login_required
+def transaction_print(id):
+    quote = Quote.query.get_or_404(id)
+    return render_template('quote/transaction_print.html', quote=quote)

@@ -1,0 +1,57 @@
+{% if assets %}
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+    {% for asset in assets %}
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+        <div class="aspect-square flex items-center justify-center p-4 bg-gray-50 checkerboard-bg">
+            <img src="/uploads/{{ asset.file_svg_path }}" alt="{{ asset.text }}" class="max-h-full max-w-full">
+        </div>
+        <div class="p-3 border-t border-gray-100">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-sm font-semibold text-gray-900 truncate">{{ asset.text }}</p>
+                    <p class="text-xs text-gray-500 uppercase">{{ asset.type.value }}</p>
+                </div>
+                <div class="flex space-x-1">
+                    <button
+                        onclick="downloadPng('/uploads/{{ asset.file_svg_path }}', '{{ asset.text }}_{{ asset.created_at.strftime('%Y%m%d') }}.png')"
+                        class="p-1 text-gray-400 hover:text-indigo-600 transition-colors" title="다운로드">
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                    </button>
+                    <button onclick="deleteAsset({{ asset.id }})"
+                        class="p-1 text-gray-400 hover:text-red-600 transition-colors" title="삭제">
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <p class="mt-1 text-[10px] text-gray-400">{{ asset.created_at.strftime('%Y-%m-%d') }}</p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<style>
+    .checkerboard-bg {
+        background-image: linear-gradient(45deg, #f0f0f0 25%, transparent 25%),
+            linear-gradient(-45deg, #f0f0f0 25%, transparent 25%),
+            linear-gradient(45deg, transparent 75%, #f0f0f0 75%),
+            linear-gradient(-45deg, transparent 75%, #f0f0f0 75%);
+        background-size: 10px 10px;
+    }
+</style>
+{% else %}
+<div class="text-center py-20 bg-white rounded-lg border border-dashed border-gray-300">
+    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+    </svg>
+    <h3 class="mt-2 text-sm font-medium text-gray-900">저장된 도장이 없습니다.</h3>
+    <p class="mt-1 text-sm text-gray-500">새 도장을 만들어보세요.</p>
+</div>
+{% endif %}

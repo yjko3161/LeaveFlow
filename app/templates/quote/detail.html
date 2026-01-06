@@ -201,9 +201,14 @@
             수정
         </a>
 
+        <a href="{{ url_for('quote.transaction_print', id=quote.id) }}" target="_blank"
+            class="px-4 py-2 bg-purple-600 text-white rounded-md text-sm font-medium hover:bg-purple-700 shadow-sm">
+            거래명세서 인쇄
+        </a>
+
         <button onclick="window.print()"
             class="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700 shadow-sm">
-            인쇄 / PDF 저장
+            견적서 인쇄
         </button>
     </div>
 </div>

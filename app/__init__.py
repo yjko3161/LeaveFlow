@@ -2,6 +2,9 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, current_user
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 db = SQLAlchemy()
 login_manager = LoginManager()
@@ -31,7 +34,7 @@ def create_app():
 
     # Import Models for detection
     with app.app_context():
-        from app.models import user, approval, leave, expense, certificate, quote, company
+        from app.models import user, approval, leave, expense, certificate, quote, company, stamp
         # db.create_all() # We will do this via seed script
 
     # Context Processor for Notifications
@@ -60,7 +63,7 @@ def create_app():
     app.jinja_env.filters['num_to_kor'] = num_to_kor
 
     # Register Blueprints
-    from app.routes import auth, main, leave, approval, expense, certificate, export, quote, settings
+    from app.routes import auth, main, leave, approval, expense, certificate, export, quote, settings, stamp
     app.register_blueprint(auth.bp, url_prefix='/auth')
     app.register_blueprint(main.bp)
     app.register_blueprint(leave.bp)
@@ -70,5 +73,6 @@ def create_app():
     app.register_blueprint(export.bp)
     app.register_blueprint(quote.bp)
     app.register_blueprint(settings.bp)
+    app.register_blueprint(stamp.bp)
 
     return app

@@ -7,3 +7,5 @@ jinja2
 openpyxl
 cryptography
 email-validator
+svglib
+reportlab

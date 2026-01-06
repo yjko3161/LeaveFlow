@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <title>거래명세서 인쇄</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @media print {
+            @page {
+                size: A4;
+                margin: 0;
+            }
+
+            body {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                margin: 0;
+                padding: 0;
+            }
+        }
+
+        .section-green {
+            color: #2f6f4e !important;
+            /* Dark Green */
+            border-color: #2f6f4e !important;
+        }
+
+        .section-green th {
+            background-color: #2f6f4e !important;
+            color: #ffffff !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        .section-red {
+            color: #d33c2a !important;
+            /* Standard Red/Orange */
+            border-color: #d33c2a !important;
+        }
+
+        .section-red th {
+            background-color: #d33c2a !important;
+            color: #ffffff !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        /* Custom Table Borders */
+        .ts-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        .ts-table th,
+        .ts-table td {
+            border: 1px solid currentColor;
+            padding: 1px 4px;
+            text-align: center;
+            font-size: 11px;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .ts-container {
+            width: 210mm;
+            height: 297mm;
+            margin: 0 auto;
+            position: relative;
+            background: white;
+            box-sizing: border-box;
+            padding: 10mm;
+        }
+
+        /* Helper for Grid Headers */
+        .grid-header,
+        .w-8.border-r.bg-transparent,
+        .w-16.items-center.justify-center.border-l {
+            font-weight: bold !important;
+        }
+
+        .grid-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: transparent;
+            text-align: center;
+            border-right: 1px solid currentColor;
+        }
+
+        .grid-cell {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            padding-left: 4px;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        .grid-row {
+            display: flex;
+            border-bottom: 1px solid currentColor;
+            height: 24px;
+        }
+
+        .grid-row:last-child {
+            border-bottom: none;
+        }
+
+        .stripe-row-green:nth-child(even) {
+            background-color: #f0f7f4;
+        }
+
+        .stripe-row-red:nth-child(even) {
+            background-color: #fff0f0;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 print:bg-white text-xs font-sans">
+
+    <div class="ts-container">
+
+        <!-- Top Half (Green): Provider Copy -->
+        <div
+            class="section-green h-[132mm] flex flex-col relative box-border overflow-hidden border-2 border-[currentColor] p-1">
+
+            <!-- Header Row -->
+            <div class="flex border-2 border-[currentColor] items-stretch h-[40px] mb-1">
+                <!-- Date Box (Left) -->
+                <div class="w-28 border-r border-[currentColor] flex flex-col">
+                    <div
+                        class="h-5 flex items-center justify-center bg-transparent border-b border-[currentColor] text-[10px] ">
+                        거래일자</div>
+                    <div class="flex-1 flex items-center justify-center font-mono text-xs">{{
+                        quote.created_at.strftime('%Y-%m-%d') }}</div>
+                </div>
+
+                <!-- Title (Center) -->
+                <div class="flex-1 flex items-center justify-center">
+                    <h1 class="text-2xl font-bold tracking-[0.5em] mr-2">거 래 명 세 서</h1>
+                    <span class="text-xs pt-1 font-bold">(공급자용)</span>
+                </div>
+            </div>
+
+            <!-- Provider / Receiver Box (4-row) -->
+            <div class="flex border-2 border-[currentColor] h-[120px] mb-1 text-[11px]">
+
+                <!-- Left: Receiver (공급받는자) -->
+                <div class="flex-1 flex border-r border-[currentColor]">
+                    <div
+                        class="w-8 flex items-center justify-center border-r border-[currentColor] bg-transparent text-center leading-tight text-base py-1 font-bold">
+                        공<br>급<br>받<br>는<br>자
+                    </div>
+                    <div class="flex-1 flex flex-col">
+                        <!-- Row 1: Sangho / Gwiha -->
+                        <div class="grid-row h-[28px]">
+                            <div class="w-20 grid-header h-full leading-tight text-[10px]">상호<br>( 법 인 명 )</div>
+                            <div
+                                class="grid-cell text-[currentColor] font-bold text-center justify-center text-sm px-1">
+                                {{
+                                quote.client_name }}</div>
+                            <div
+                                class="w-16 flex items-center justify-center border-l border-[currentColor] text-xs font-bold">
+                                귀하</div>
+                        </div>
+                        <!-- Row 2: Phone / Fax -->
+                        <div class="grid-row h-[28px]">
+                            <div class="w-20 grid-header h-full text-[10px]">전화번호</div>
+                            <div class="grid-cell text-[currentColor] border-r border-[currentColor] justify-center">
+                            </div>
+                            <div class="w-12 grid-header h-full text-[10px]">팩스</div>
+                            <div class="grid-cell text-[currentColor] justify-center"></div>
+                        </div>
+                        <!-- Row 3: Address -->
+                        <div class="grid-row h-[28px]">
+                            <div class="w-20 grid-header h-full leading-tight text-[10px]">사 업 장<br>주 소</div>
+                            <div class="grid-cell text-[currentColor] px-1 justify-center"></div>
+                        </div>
+                        <!-- Row 4: Total Amount -->
+                        <div class="flex-1 flex border-[currentColor] items-center">
+                            <div class="w-20 grid-header h-full text-[10px]">합계금액</div>
+                            <div
+                                class="flex-1 flex items-center justify-between px-3 text-[currentColor] font-bold border-b-0">
+                                <span class="text-base">₩</span>
+                                <span class="text-lg tracking-wider">{{ "{:,}".format((quote.total_amount * 1.1)|int)
+                                    }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Supplier (공급자) -->
+                <div class="flex-1 flex">
+                    <div
+                        class="w-8 flex items-center justify-center border-r border-[currentColor] bg-transparent text-center leading-tight text-base py-1">
+                        공<br>급<br>자
+                    </div>
+                    <div class="flex-1 flex flex-col">
+                        <!-- Row 1: Reg No -->
+                        <div class="grid-row h-[28px]">
+                            <div class="w-16 grid-header h-full text-[10px]">등록번호</div>
+                            <div
+                                class="grid-cell text-center justify-center tracking-wider text-[currentColor] font-bold text-xs px-1">
+                                {{ quote.provider_reg_number }}</div>
+                        </div>
+                        <!-- Row 2: Company / Name + Stamp -->
+                        <div class="grid-row h-[32px]">
+                            <div class="w-16 grid-header font-bold h-full text-[10px]">상 호</div>
+                            <div
+                                class="grid-cell text-[currentColor] font-bold justify-center border-r border-[currentColor] text-[9px] px-1 text-center whitespace-normal leading-tight">
+                                {{ quote.provider_company_name }}</div>
+                            <div class="w-10 grid-header h-full border-r border-[currentColor] text-[10px]">성명</div>
+                            <div class="flex-1 grid-cell justify-center relative text-[currentColor] overflow-visible">
+                                <span class="mr-3 z-10 text-[10px] font-bold">{{ quote.provider_owner_name }}</span>
+                                <div class="absolute right-0 top-1/2 transform -translate-y-1/2 z-20">
+                                    {% if quote.provider_stamp_path %}
+                                    <img src="{{ url_for('main.uploaded_file', filename=quote.provider_stamp_path) }}"
+                                        class="w-9 h-9 object-contain mix-blend-multiply rounded-full" />
+                                    {% else %}
+                                    <span
+                                        class="text-[8px] border border-red-500 text-red-500 rounded-full p-1 w-7 h-7 flex items-center justify-center">인</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Row 3: Phone / Fax -->
+                        <div class="grid-row h-[28px]">
+                            <div class="w-16 grid-header h-full text-[10px]">전화번호</div>
+                            <div
+                                class="grid-cell text-[currentColor] text-[9px] border-r border-[currentColor] justify-center px-1">
+                                {{ quote.provider_phone }}</div>
+                            <div class="w-10 grid-header h-full text-[10px]">팩스</div>
+                            <div class="grid-cell text-[currentColor] justify-center text-[9px]">062-712-2418</div>
+                        </div>
+                        <!-- Row 4: Address -->
+                        <div class="flex-1 flex border-[currentColor] items-center">
+                            <div class="w-16 grid-header h-full leading-tight text-[10px]">사업장<br>주소</div>
+                            <div
+                                class="grid-cell text-[currentColor] text-[9px] justify-center px-1 leading-tight text-center">
+                                {{ quote.provider_address }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Items Table -->
+            <table class="ts-table border-2 border-[currentColor] mb-1 flex-1">
+                <thead>
+                    <tr class="h-6 bg-[#2f6f4e] text-white font-bold">
+                        <th class="w-7">월</th>
+                        <th class="w-7">일</th>
+                        <th>품 목</th>
+                        <th class="w-25">규 격</th>
+                        <th class="w-10">수량</th>
+                        <th class="w-16">단가</th>
+                        <th class="w-20">공급가액</th>
+                        <th class="w-16">세액</th>
+                        <th class="w-12">비고</th>
+                    </tr>
+                </thead>
+                <tbody class="text-[currentColor]">
+                    {% for item in quote.items[:12] %}
+                    <tr class="h-[21px] stripe-row-green">
+                        <td>{{ quote.created_at.month }}</td>
+                        <td>{{ quote.created_at.day }}</td>
+                        <td class="text-left px-2">{{ item.description }}</td>
+                        <td class="text-center">{{ item.spec or '' }}</td>
+                        <td class="text-right px-1">{{ item.quantity }}</td>
+                        <td class="text-right px-1">{{ "{:,}".format(item.unit_price) }}</td>
+                        <td class="text-right px-1">{{ "{:,}".format(item.amount) }}</td>
+                        <td class="text-right px-1">{{ "{:,}".format((item.amount * 0.1)|int) }}</td>
+                        <td></td>
+                    </tr>
+                    {% endfor %}
+
+                    {% if quote.items|length < 12 %} <tr class="h-[21px] stripe-row-green">
+                        <td></td>
+                        <td></td>
+                        <td colspan="7" class="text-center tracking-[1.5em] text-[currentColor] text-[9px]">이
+                            하 여 백
+                        </td>
+                        </tr>
+                        {% for i in range(11 - quote.items|length) %}
+                        <tr class="h-[21px] stripe-row-green">
+                            <td>&nbsp;</td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        {% endfor %}
+                        {% endif %}
+                </tbody>
+            </table>
+
+            <!-- Footer Summary -->
+            <div class="flex border-2 border-[currentColor] text-xs h-6 items-center">
+                <div class="w-20 grid-header h-full border-r border-[currentColor] text-[10px]">공급가액</div>
+                <div
+                    class="flex-1 flex items-center justify-end px-2 border-r border-[currentColor] text-[currentColor]">
+                    {{
+                    "{:,}".format(quote.total_amount) }}</div>
+                <div class="w-14 grid-header h-full border-r border-[currentColor] text-[10px]">세 액</div>
+                <div
+                    class="flex-1 flex items-center justify-end px-2 border-r border-[currentColor] text-[currentColor]">
+                    {{
+                    "{:,}".format((quote.total_amount * 0.1)|int) }}</div>
+                <div class="w-14 grid-header h-full border-r border-[currentColor] text-[10px]">미수금</div>
+                <div class="w-16 flex items-center justify-end px-2 border-r border-[currentColor] text-[currentColor]">
+                </div>
+                <div class="w-14 grid-header h-full border-r border-[currentColor] text-[10px]">인수자</div>
+                <div class="w-12 flex items-center justify-center text-[currentColor] font-normal opacity-50">(인)</div>
+            </div>
+        </div>
+
+        <!-- Cut Line -->
+        <div class="h-0 border-t border-dashed border-gray-400 my-8"></div>
+
+
+        <!-- Bottom Half (Red): Receiver Copy -->
+        <div
+            class="section-red h-[132mm] flex flex-col relative box-border overflow-hidden border-2 border-[currentColor] p-1">
+
+            <!-- Header Row -->
+            <div class="flex border-2 border-[currentColor] items-stretch h-[40px] mb-1">
+                <div class="w-28 border-r border-[currentColor] flex flex-col">
+                    <div
+                        class="h-5 flex items-center justify-center bg-transparent border-b border-[currentColor] text-[10px]">
+                        거래일자</div>
+                    <div class="flex-1 flex items-center justify-center font-mono text-xs">{{
+                        quote.created_at.strftime('%Y-%m-%d') }}</div>
+                </div>
+
+                <div class="flex-1 flex items-center justify-center">
+                    <h1 class="text-2xl font-bold tracking-[0.5em] mr-2">거 래 명 세 서</h1>
+                    <span class="text-xs pt-1 font-bold">(공급받는자용)</span>
+                </div>
+            </div>
+
+            <!-- Provider / Receiver Box (4-row) -->
+            <div class="flex border-2 border-[currentColor] h-[120px] mb-1 text-[11px]">
+
+                <!-- Left: Receiver (공급받는자) -->
+                <div class="flex-1 flex border-r border-[currentColor]">
+                    <div
+                        class="w-8 flex items-center justify-center border-r border-[currentColor] bg-transparent text-center leading-tight text-base py-1 font-bold">
+                        공<br>급<br>받<br>는<br>자
+                    </div>
+                    <div class="flex-1 flex flex-col">
+                        <div class="grid-row h-[28px]">
+                            <div class="w-20 grid-header h-full leading-tight text-[10px]">상호<br>( 법 인 명 )</div>
+                            <div
+                                class="grid-cell text-[currentColor] font-bold text-center justify-center text-sm px-1">
+                                {{
+                                quote.client_name }}</div>
+                            <div
+                                class="w-16 flex items-center justify-center border-l border-[currentColor] text-xs font-bold">
+                                귀하</div>
+                        </div>
+                        <div class="grid-row h-[28px]">
+                            <div class="w-20 grid-header h-full text-[10px]">전화번호</div>
+                            <div class="grid-cell text-[currentColor] border-r border-[currentColor] justify-center">
+                            </div>
+                            <div class="w-12 grid-header h-full text-[10px]">팩스</div>
+                            <div class="grid-cell text-[currentColor] justify-center text-[10px]"></div>
+                        </div>
+                        <div class="grid-row h-[28px]">
+                            <div class="w-20 grid-header h-full leading-tight text-[10px]">사 업 장<br>주 소</div>
+                            <div class="grid-cell text-[currentColor] px-1 justify-center"></div>
+                        </div>
+                        <div class="flex-1 flex border-[currentColor] items-center">
+                            <div class="w-20 grid-header h-full text-[10px]">합계금액</div>
+                            <div
+                                class="flex-1 flex items-center justify-between px-3 text-[currentColor] font-bold border-b-0">
+                                <span class="text-base">₩</span>
+                                <span class="text-lg tracking-wider">{{ "{:,}".format((quote.total_amount * 1.1)|int)
+                                    }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Supplier (공급자) -->
+                <div class="flex-1 flex">
+                    <div
+                        class="w-8 flex items-center justify-center border-r border-[currentColor] bg-transparent text-center leading-tight text-base py-1">
+                        공<br>급<br>자
+                    </div>
+                    <div class="flex-1 flex flex-col">
+                        <div class="grid-row h-[28px]">
+                            <div class="w-16 grid-header h-full text-[10px]">등록번호</div>
+                            <div
+                                class="grid-cell text-center justify-center tracking-wider text-[currentColor] font-bold text-xs px-1">
+                                {{ quote.provider_reg_number }}</div>
+                        </div>
+                        <div class="grid-row h-[32px]">
+                            <div class="w-16 grid-header font-bold h-full text-center text-[10px]">상 호</div>
+                            <div
+                                class="grid-cell text-[currentColor] font-bold justify-center border-r border-[currentColor] text-[10px] px-1 text-center whitespace-normal leading-tight">
+                                {{ quote.provider_company_name }}</div>
+                            <div class="w-10 grid-header h-full border-r border-[currentColor] text-[10px]">성명</div>
+                            <div
+                                class="flex-1 grid-cell justify-center relative text-[currentColor] font-bold overflow-visible">
+                                <span class="mr-3 z-10 text-[10px] font-bold">{{ quote.provider_owner_name }}</span>
+                                <div class="absolute right-0 top-1/2 transform -translate-y-1/2 z-20">
+                                    {% if quote.provider_stamp_path %}
+                                    <img src="{{ url_for('main.uploaded_file', filename=quote.provider_stamp_path) }}"
+                                        class="w-9 h-9 object-contain mix-blend-multiply rounded-full" />
+                                    {% else %}
+                                    <span
+                                        class="text-[8px] border border-blue-500 text-blue-500 rounded-full p-1 w-7 h-7 flex items-center justify-center">인</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="grid-row h-[28px]">
+                            <div class="w-16 grid-header h-full text-[10px]">전화번호</div>
+                            <div
+                                class="grid-cell text-[currentColor] text-[9px] border-r border-[currentColor] justify-center px-1">
+                                {{ quote.provider_phone }}</div>
+                            <div class="w-10 grid-header h-full text-[10px]">팩스</div>
+                            <div class="grid-cell text-[currentColor] justify-center text-[9px]">062-712-2418</div>
+                        </div>
+                        <div class="flex-1 flex border-[currentColor] items-center">
+                            <div class="w-16 grid-header font-bold h-full leading-tight text-[10px]">사업장<br>주소</div>
+                            <div
+                                class="grid-cell text-[currentColor] text-[9px] justify-center px-1 leading-tight text-center">
+                                {{ quote.provider_address }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Items Table -->
+            <table class="ts-table border-2 border-[currentColor] mb-1 flex-1">
+                <thead>
+                    <tr class="h-6 bg-[#d33c2a] text-white font-bold">
+                        <th class="w-7">월</th>
+                        <th class="w-7">일</th>
+                        <th>품 목</th>
+                        <th class="w-25">규 격</th>
+                        <th class="w-10">수량</th>
+                        <th class="w-16">단가</th>
+                        <th class="w-20">공급가액</th>
+                        <th class="w-16">세액</th>
+                        <th class="w-12">비고</th>
+                    </tr>
+                </thead>
+                <tbody class="text-[currentColor]">
+                    {% for item in quote.items[:12] %}
+                    <tr class="h-[21px] stripe-row-red">
+                        <td>{{ quote.created_at.month }}</td>
+                        <td>{{ quote.created_at.day }}</td>
+                        <td class="text-left px-2">{{ item.description }}</td>
+                        <td class="text-center">{{ item.spec or '' }}</td>
+                        <td class="text-right px-1">{{ item.quantity }}</td>
+                        <td class="text-right px-1">{{ "{:,}".format(item.unit_price) }}</td>
+                        <td class="text-right px-1">{{ "{:,}".format(item.amount) }}</td>
+                        <td class="text-right px-1">{{ "{:,}".format((item.amount * 0.1)|int) }}</td>
+                        <td></td>
+                    </tr>
+                    {% endfor %}
+                    <!-- Filler -->
+                    {% if quote.items|length < 12 %} <tr class="h-[21px] stripe-row-red">
+                        <td></td>
+                        <td></td>
+                        <td colspan="7" class="text-center tracking-[1.5em] text-[currentColor] text-[9px]">이
+                            하 여 백
+                        </td>
+                        </tr>
+                        {% for i in range(11 - quote.items|length) %}
+                        <tr class="h-[21px] stripe-row-red">
+                            <td>&nbsp;</td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        {% endfor %}
+                        {% endif %}
+                </tbody>
+            </table>
+
+            <!-- Footer Summary -->
+            <div class="flex border-2 border-[currentColor] text-xs h-6 items-center">
+                <div class="w-20 grid-header h-full border-r border-[currentColor] text-[10px]">공급가액</div>
+                <div
+                    class="flex-1 flex items-center justify-end px-2 border-r border-[currentColor] text-[currentColor]">
+                    {{
+                    "{:,}".format(quote.total_amount) }}</div>
+                <div class="w-14 grid-header h-full border-r border-[currentColor] text-[10px]">세 액</div>
+                <div
+                    class="flex-1 flex items-center justify-end px-2 border-r border-[currentColor] text-[currentColor]">
+                    {{
+                    "{:,}".format((quote.total_amount * 0.1)|int) }}</div>
+                <div class="w-14 grid-header h-full border-r border-[currentColor] text-[10px]">미수금</div>
+                <div class="w-16 flex items-center justify-end px-2 border-r border-[currentColor] text-[currentColor]">
+                </div>
+                <div class="w-14 grid-header h-full border-r border-[currentColor] text-[10px]">인수자</div>
+                <div class="w-12 flex items-center justify-center text-[currentColor] font-normal opacity-50">(인)</div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="fixed top-4 right-4 print:hidden">
+        <button onclick="window.print()"
+            class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded shadow">
+            인쇄하기
+        </button>
+        <button onclick="window.close()"
+            class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded shadow ml-2">
+            닫기
+        </button>
+    </div>
+
+</body>
+
+</html>

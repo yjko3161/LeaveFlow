@@ -20,6 +20,10 @@ class User(UserMixin, db.Model):
     role = db.Column(db.Enum(UserRole), default=UserRole.EMPLOYEE)
     team_id = db.Column(db.Integer, db.ForeignKey('teams.id'), nullable=True)
     join_date = db.Column(db.Date, nullable=True)
+    resident_reg_number = db.Column(db.String(20), nullable=True)
+    address = db.Column(db.String(255), nullable=True)
+    department = db.Column(db.String(100), nullable=True)
+    position = db.Column(db.String(100), nullable=True) # Used for 'Rank/직급'
     card_number = db.Column(db.String(20), nullable=True) # Corporate Card Number
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 

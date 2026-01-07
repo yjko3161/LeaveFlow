@@ -13,132 +13,222 @@
         </button>
     </div>
 
-    <!-- Paper Container -->
-    <div class="bg-white shadow-lg p-[15mm] min-h-[297mm] print:min-h-0 relative print:shadow-none print:p-0">
+    <!-- Cert Viewer Background (Screen Only) -->
+    <div
+        class="cert-viewer bg-gray-600 min-h-screen py-8 print:p-0 print:bg-white overflow-y-auto flex flex-col items-center">
 
-        <!-- Document Border -->
-        <div class="border-2 border-gray-300 h-full p-[10mm] flex flex-col justify-between" style="min-height: 230mm;">
+        <!-- Paper Container -->
+        <div class="cert-page bg-white shadow-2xl print:shadow-none print:m-0 mb-8"
+            style="width: 210mm; height: 297mm; position: relative; box-sizing: border-box; overflow: hidden; background-color: white; flex-shrink: 0;">
 
-            <div class="text-center mt-4">
-                <p class="text-xs font-serif tracking-widest text-gray-500 mb-1 uppercase">Employment Certificate</p>
-                <p class="text-[10px] text-gray-400 mb-4">Certificate ID : {{ cert.created_at.strftime('%Y%m%d') }}-{{
-                    cert.id }}</p>
-                <h1 class="text-3xl font-serif font-bold tracking-[0.5em] mb-4">
-                    {% if cert.cert_type.value == 'EMPLOYMENT' %}재직증명서
-                    {% elif cert.cert_type.value == 'CAREER' %}경력증명서
-                    {% elif cert.cert_type.value == 'INCOME' %}소득증명서
-                    {% else %}증명서{% endif %}
-                </h1>
-                <div class="w-12 h-0.5 bg-black mx-auto mb-8"></div>
-            </div>
+            <!-- Outer Padding/Margin -->
+            <div class="p-[25mm] h-full w-full flex flex-col" style="box-sizing: border-box;">
 
-            <!-- Body Info -->
-            <div class="flex-1 px-8">
-                <!-- Personal Info -->
-                <div class="mb-12">
-                    <p class="text-sm font-bold mb-4 text-gray-800">[ 인 적 사 항 ]</p>
-                    <table class="w-full text-sm">
-                        <tr class="border-t border-gray-200">
-                            <th
-                                class="text-left w-32 py-2 font-bold text-gray-600 bg-gray-50 px-4 border-r border-gray-100">
-                                성 명</th>
-                            <td class="text-left py-2 font-serif px-4 border-b border-gray-100">{{ cert.user.name }}
-                            </td>
-                        </tr>
-                        <tr>
-                            <th class="text-left py-2 font-bold text-gray-600 bg-gray-50 px-4 border-r border-gray-100">
-                                주민등록번호</th>
-                            <td class="text-left py-2 font-serif px-4 border-b border-gray-100">******-*******</td>
-                        </tr>
-                        <tr>
-                            <th class="text-left py-2 font-bold text-gray-600 bg-gray-50 px-4 border-r border-gray-100">
-                                주 소</th>
-                            <td class="text-left py-2 font-serif px-4 border-b border-gray-100">{{ cert.user.address or
-                                '주소 정보 없음' }}</td>
-                        </tr>
-                    </table>
+                <div class="text-center mt-5 mb-5">
+                    <h1 class="text-2xl font-serif font-black tracking-[0.8em] py-4">재 직 증 명 서</h1>
                 </div>
 
-                <hr class="border-gray-200 mb-8">
-
-                <div class="mb-12">
-                    <p class="text-sm font-bold mb-4 text-gray-800">[ 재 직 사 항 ]</p>
-                    <table class="w-full text-sm">
-                        <tr class="border-t border-gray-200">
+                <!-- Main Table Body -->
+                <div class="flex-1 w-full">
+                    <table class="w-full text-base border-collapse border-[1.5pt] border-black">
+                        <tr class="h-14">
                             <th
-                                class="text-left w-32 py-2 font-bold text-gray-600 bg-gray-50 px-4 border-r border-gray-100">
-                                직장명</th>
-                            <td class="text-left py-2 font-serif px-4 border-b border-gray-100">{{ company.company_name
+                                class="text-center w-40 font-bold bg-gray-100 border border-black px-2 whitespace-nowrap tracking-[2.5em] mr-[-2.5em]">
+                                성명</th>
+                            <td class="text-left border border-black px-4 font-medium text-lg">{{ cert.name or
+                                cert.user.name }}</td>
+                        </tr>
+                        <tr class="h-14">
+                            <th class="text-center font-bold bg-gray-100 border border-black px-2 whitespace-nowrap">
+                                주민등록번호</th>
+                            <td class="text-left border border-black px-4 font-medium text-lg tracking-widest">{{
+                                cert.resident_reg_number or '정보 없음' }}</td>
+                        </tr>
+                        <tr class="h-14">
+                            <th
+                                class="text-center font-bold bg-gray-100 border border-black px-2 whitespace-nowrap tracking-[2.5em] mr-[-2.5em]">
+                                직급</th>
+                            <td class="text-left border border-black px-4 font-medium text-lg">{{ cert.position or '사원'
                                 }}</td>
                         </tr>
-                        <tr>
-                            <th class="text-left py-2 font-bold text-gray-600 bg-gray-50 px-4 border-r border-gray-100">
-                                소재지</th>
-                            <td class="text-left py-2 font-serif px-4 border-b border-gray-100">{{ company.address }}
+                        <tr class="h-14">
+                            <th
+                                class="text-center font-bold bg-gray-100 border border-black px-2 whitespace-nowrap tracking-[2.5em] mr-[-2.5em]">
+                                부서</th>
+                            <td class="text-left border border-black px-4 font-medium text-lg">{{ cert.department or '-'
+                                }}</td>
+                        </tr>
+                        <tr class="h-20">
+                            <th
+                                class="text-center font-bold bg-gray-100 border border-black px-2 whitespace-nowrap tracking-[0.8em] mr-[-0.8em]">
+                                현주소</th>
+                            <td class="text-left border border-black p-0 font-medium">
+                                <div class="flex h-full w-full">
+                                    <div class="flex-1 h-full flex items-center px-4 text-sm leading-snug">
+                                        우) {{ cert.user.zip_code if cert.user and cert.user.zip_code else '61018' }}
+                                        {{ cert.address or cert.user.address or '주소 정보 없음' }}
+                                    </div>
+                                </div>
                             </td>
                         </tr>
-                        <tr>
-                            <th class="text-left py-2 font-bold text-gray-600 bg-gray-50 px-4 border-r border-gray-100">
-                                직위</th>
-                            <td class="text-left py-2 font-serif px-4 border-b border-gray-100">
-                                {% if cert.user.role == 'ADMIN' %}대표
-                                {% elif cert.user.role == 'MANAGER' %}부서장
-                                {% else %}사원{% endif %}
-                            </td>
-                        </tr>
-                        <tr>
-                            <th class="text-left py-2 font-bold text-gray-600 bg-gray-50 px-4 border-r border-gray-100">
+                        <tr class="h-14">
+                            <th
+                                class="text-center font-bold bg-gray-100 border border-black px-2 whitespace-nowrap tracking-[0.4em] mr-[-0.4em]">
                                 재직기간</th>
-                            <td class="text-left py-2 font-serif px-4 border-b border-gray-100">
-                                {{ cert.user.join_date.strftime('%Y.%m.%d') if cert.user.join_date else '입사일 미상' }} ~ 현재
+                            <td class="text-left border border-black px-4 font-medium text-base">
+                                {% set j_date = cert.join_date or cert.user.join_date %}
+                                {% if j_date %}
+                                <div class="flex justify-between items-center w-full">
+                                    <span class="tracking-tighter">{{ j_date.strftime('%Y년 %m월 %d일') }}부터 {{
+                                        today.strftime('%Y년 %m월 %d일') }} 현재</span>
+                                    <span class="ml-2 font-semibold">{{ duration }}</span>
+                                </div>
+                                {% else %}
+                                입사일 정보 없음
+                                {% endif %}
                             </td>
+                        </tr>
+                        <tr class="h-14">
+                            <th
+                                class="text-center font-bold bg-gray-100 border border-black px-2 whitespace-nowrap tracking-[2.5em] mr-[-2.5em]">
+                                용도</th>
+                            <td class="text-left border border-black px-4 font-medium text-base">{{ cert.reason }}</td>
+                        </tr>
+                        <tr class="h-14">
+                            <th
+                                class="text-center font-bold bg-gray-100 border border-black px-2 whitespace-nowrap tracking-[0.8em] mr-[-0.8em]">
+                                제출처</th>
+                            <td class="text-left border border-black px-4 font-medium text-base">{{ cert.issue_to or ''
+                                }}</td>
                         </tr>
                     </table>
-                </div>
 
-                <div class="text-center mb-12">
-                    <p class="mb-2 text-sm text-gray-600">용도 : {{ cert.reason }}</p>
-                    <p class="text-lg font-serif">상기인은 위와 같이 재직하고 있음을 증명합니다.</p>
-                </div>
-            </div>
-
-            <!-- Footer -->
-            <div class="text-center relative pb-12">
-                <p class="text-sm text-gray-500 mb-4">Confirmed and Signed by</p>
-                <div class="relative inline-block">
-                    <p class="text-sm font-bold text-gray-700 mb-2">{{ company.company_name }}</p>
-                    <h2 class="text-2xl font-bold tracking-widest relative z-10">대표이사 {{ company.owner_name }}</h2>
-                    <!-- Stamp Overlay -->
-                    <div class="absolute -top-4 -right-8 w-20 h-20 opacity-80 z-0">
-                        {% if company.stamp_path %}
-                        <img src="{{ url_for('main.uploaded_file', filename=company.stamp_path) }}"
-                            class="w-full h-full object-contain" />
-                        {% else %}
-                        <div class="border-4 border-red-600 rounded-full w-full h-full flex items-center justify-center text-red-600 font-bold text-xs p-1 text-center"
-                            style="transform: rotate(-15deg);">
-                            {{ company.company_name }}<br>직인
-                        </div>
-                        {% endif %}
+                    <div class="text-center mt-10">
+                        <p class="text-xl font-serif font-medium tracking-tight">상기인은 현재 재직 중에 있음을 증명합니다.</p>
                     </div>
                 </div>
-                <!-- Date -->
-                <p class="mt-8 text-sm font-serif">{{ today.strftime('%Y. %m. %d.') }}</p>
+
+                <!-- Footer -->
+                <div class="mt-auto">
+                    <div class="text-right pr-10 mb-10 mt-20">
+                        <p class="text-xl font-serif font-medium tracking-widest">{{ today.strftime('%Y 년 %m 월 %d 일') }}
+                        </p>
+                    </div>
+
+                    <div class="flex justify-end pr-[10mm] relative mb-12">
+                        <div class="space-y-3 text-lg w-[140mm]"> <!-- Fixed width container for alignment -->
+                            <div class="flex items-center">
+                                <div class="w-[35mm] flex justify-between font-bold mr-4">
+                                    <span>회&nbsp;&nbsp;사&nbsp;&nbsp;명</span>
+                                </div>
+                                <span class="mr-4">:</span>
+                                <span class="font-medium underline decoration-transparent">{{ company.company_name
+                                    }}</span>
+                            </div>
+                            <div class="flex items-start">
+                                <div class="w-[35mm] flex justify-between font-bold mr-4">
+                                    <span>회사주소</span>
+                                </div>
+                                <span class="mr-4">:</span>
+                                <div class="font-medium flex-1 text-sm leading-snug break-keep">
+                                    {{ company.address }}
+                                </div>
+                            </div>
+                            <div class="flex items-center relative">
+                                <div class="w-[35mm] flex justify-between font-bold mr-4">
+                                    <span>대표이사</span>
+                                </div>
+                                <span class="mr-4">:</span>
+                                <div class="flex items-center">
+                                    <span class="text-xl font-medium tracking-[0.5em] mr-2">{{ company.owner_name
+                                        }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 <style>
+    @media screen and (max-width: 210mm) {
+        .cert-viewer {
+            padding: 0 !important;
+            background-color: #f3f4f6;
+        }
+
+        .cert-page {
+            width: 100vw !important;
+            height: calc(100vw * 1.414) !important;
+            box-shadow: none !important;
+            margin: 0 !important;
+        }
+
+        .cert-page>div {
+            zoom: calc(100vw / 210);
+            /* Simple zoom for mobile */
+        }
+    }
+
     @media print {
         @page {
             size: A4;
             margin: 0;
         }
 
-        body {
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
             background-color: white;
+        }
+
+        /* Hide specific non-print elements */
+        nav,
+        header,
+        aside,
+        .print\:hidden,
+        .cert-viewer-container>div:first-child,
+        button,
+        a {
+            display: none !important;
+        }
+
+        /* Ensure wrapper is not limiting */
+        .cert-viewer,
+        .cert-viewer-container,
+        .viewer-body {
+            background: white !important;
+            height: auto !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            display: block !important;
+            overflow: visible !important;
+        }
+
+        /* Force cert page to be the main content */
+        .cert-page {
+            width: 210mm !important;
+            height: 297mm !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            box-shadow: none !important;
+            border: none !important;
+            print-color-adjust: exact;
+            -webkit-print-color-adjust: exact;
+            display: block !important;
+            position: relative !important;
+            background: white !important;
+        }
+
+        /* Ensure child elements are visible */
+        .cert-page * {
+            visibility: visible !important;
         }
     }
 </style>

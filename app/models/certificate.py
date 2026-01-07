@@ -16,6 +16,15 @@ class CertificateRequest(db.Model):
     reason = db.Column(db.String(255), nullable=False)
     issue_to = db.Column(db.String(100), nullable=True) # 제출처
     
+    # Snapshot fields for issuance
+    name = db.Column(db.String(100), nullable=True)
+    resident_reg_number = db.Column(db.String(20), nullable=True)
+    address = db.Column(db.String(255), nullable=True)
+    department = db.Column(db.String(100), nullable=True)
+    position = db.Column(db.String(100), nullable=True)
+    join_date = db.Column(db.Date, nullable=True)
+    issue_to = db.Column(db.String(100), nullable=True)
+    
     status_local = db.Column(db.String(20), default="DRAFT")
     
     issued_at = db.Column(db.DateTime, nullable=True)
